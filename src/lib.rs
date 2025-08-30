@@ -189,6 +189,7 @@ pub mod enumerate;
 #[cfg(feature = "enumerate")]
 pub use enumerate::available_interfaces;
 
+#[cfg(feature = "osx_compatible")]
 pub mod osx;
 // ===== helper functions =====
 
