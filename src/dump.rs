@@ -37,7 +37,13 @@ use crate::{
 use embedded_can::Frame as EmbeddedFrame;
 use hex::FromHex;
 use itertools::Itertools;
+
+#[cfg(not(feature = "osx_compatible"))]
 use libc::canid_t;
+
+#[cfg(feature = "osx_compatible")]
+use crate::osx::canid_t;
+
 use std::{
     fmt,
     fs::File,

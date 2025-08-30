@@ -13,12 +13,19 @@
 
 use crate::id::id_to_canid_t;
 use embedded_can::Id;
-use libc::{sa_family_t, sockaddr, sockaddr_can, sockaddr_storage, socklen_t};
+use libc::{sa_family_t, sockaddr, sockaddr_storage, socklen_t};
 use nix::net::if_::if_nametoindex;
 use socket2::SockAddr;
 use std::{fmt, io, mem, mem::size_of, os::raw::c_int};
 
+#[cfg(not(feature = "osx_compatible"))]
+use libc::{sockaddr_can};
+
+#[cfg(not(feature = "osx_compatible"))]
 pub use libc::{AF_CAN, CAN_RAW, PF_CAN};
+
+#[cfg(feature = "osx_compatible")]
+use crate::osx::{sockaddr_can, AF_CAN};
 
 /// CAN socket address.
 ///

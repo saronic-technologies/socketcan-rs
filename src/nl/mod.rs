@@ -68,7 +68,9 @@ use neli::{
     FromBytes, ToBytes,
 };
 use nix::{self, net::if_::if_nametoindex, unistd};
+
 use rt::IflaCan;
+
 use std::{
     ffi::CStr,
     fmt::Debug,

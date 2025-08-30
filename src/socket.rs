@@ -21,7 +21,14 @@ pub use embedded_can::{
     self, blocking::Can as BlockingCan, nb::Can as NonBlockingCan, ExtendedId,
     Frame as EmbeddedFrame, Id, StandardId,
 };
-use libc::{canid_t, socklen_t, AF_CAN, EINPROGRESS};
+use libc::{socklen_t, EINPROGRESS};
+
+#[cfg(not(feature = "osx_compatible"))]
+use libc::{canid_t, AF_CAN, can_frame, can_filter, CAN_INV_FILTER};
+
+#[cfg(feature = "osx_compatible")]
+use crate::osx::{canid_t, AF_CAN, can_frame, can_filter, CAN_INV_FILTER};
+
 use socket2::SockAddr;
 use std::{
     fmt,
@@ -35,7 +42,14 @@ use std::{
     time::Duration,
 };
 
+#[cfg(not(feature = "osx_compatible"))]
 pub use libc::{
+    CANFD_MTU, CAN_MTU, CAN_RAW, CAN_RAW_ERR_FILTER, CAN_RAW_FD_FRAMES, CAN_RAW_FILTER,
+    CAN_RAW_JOIN_FILTERS, CAN_RAW_LOOPBACK, CAN_RAW_RECV_OWN_MSGS, SOL_CAN_BASE, SOL_CAN_RAW,
+};
+
+#[cfg(feature = "osx_compatible")]
+pub use crate::osx::{
     CANFD_MTU, CAN_MTU, CAN_RAW, CAN_RAW_ERR_FILTER, CAN_RAW_FD_FRAMES, CAN_RAW_FILTER,
     CAN_RAW_JOIN_FILTERS, CAN_RAW_LOOPBACK, CAN_RAW_RECV_OWN_MSGS, SOL_CAN_BASE, SOL_CAN_RAW,
 };
@@ -500,7 +514,7 @@ pub struct CanSocket(socket2::Socket);
 
 impl CanSocket {
     /// Reads a low-level libc `can_frame` from the socket.
-    pub fn read_raw_frame(&self) -> IoResult<libc::can_frame> {
+    pub fn read_raw_frame(&self) -> IoResult<can_frame> {
         let mut frame = can_frame_default();
         self.as_raw_socket().read_exact(as_bytes_mut(&mut frame))?;
         Ok(frame)
@@ -856,12 +870,12 @@ impl Write for CanFdSocket {
 /// A socket can be given multiple filters, and each one can be inverted
 /// ([ref](https://docs.kernel.org/networking/can.html#raw-protocol-sockets-with-can-filters-sock-raw))
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
-pub struct CanFilter(libc::can_filter);
+pub struct CanFilter(can_filter);
 
 impl CanFilter {
     /// Construct a new CAN filter.
     pub fn new(id: canid_t, mask: canid_t) -> Self {
-        Self(libc::can_filter {
+        Self(can_filter {
             can_id: id,
             can_mask: mask,
         })
@@ -869,12 +883,12 @@ impl CanFilter {
 
     /// Construct a new inverted CAN filter.
     pub fn new_inverted(id: canid_t, mask: canid_t) -> Self {
-        Self::new(id | libc::CAN_INV_FILTER, mask)
+        Self::new(id | CAN_INV_FILTER, mask)
     }
 }
 
-impl From<libc::can_filter> for CanFilter {
-    fn from(filt: libc::can_filter) -> Self {
+impl From<can_filter> for CanFilter {
+    fn from(filt: can_filter) -> Self {
         Self(filt)
     }
 }
@@ -885,8 +899,8 @@ impl From<(u32, u32)> for CanFilter {
     }
 }
 
-impl AsRef<libc::can_filter> for CanFilter {
-    fn as_ref(&self) -> &libc::can_filter {
+impl AsRef<can_filter> for CanFilter {
+    fn as_ref(&self) -> &can_filter {
         &self.0
     }
 }

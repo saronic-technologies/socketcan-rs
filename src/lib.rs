@@ -189,6 +189,7 @@ pub mod enumerate;
 #[cfg(feature = "enumerate")]
 pub use enumerate::available_interfaces;
 
+pub mod osx;
 // ===== helper functions =====
 
 /// Gets a byte slice for any sized variable.

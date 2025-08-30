@@ -20,11 +20,13 @@
 
 use crate::{as_bytes, as_bytes_mut};
 use libc::{c_char, c_uint};
+
 use neli::{
     consts::rtnl::{RtaType, RtaTypeWrapper},
     err::{DeError, SerError},
     impl_trait, neli_enum, FromBytes, Size, ToBytes,
 };
+
 use std::{
     io::{self, Cursor, Read, Write},
     mem,
@@ -78,6 +80,7 @@ pub struct can_bittiming_const {
     pub brp_inc: u32,
 }
 
+#[cfg(not(feature = "osx_compatible"))]
 impl ToBytes for can_bittiming_const {
     fn to_bytes(&self, buf: &mut Cursor<Vec<u8>>) -> Result<(), SerError> {
         buf.write_all(as_bytes(self))?;
@@ -85,6 +88,7 @@ impl ToBytes for can_bittiming_const {
     }
 }
 
+#[cfg(not(feature = "osx_compatible"))]
 impl<'a> FromBytes<'a> for can_bittiming_const {
     fn from_bytes(buf: &mut Cursor<&'a [u8]>) -> Result<Self, DeError> {
         let mut timing_const: can_bittiming_const = unsafe { mem::zeroed() };
