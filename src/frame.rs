@@ -34,11 +34,7 @@ use crate::{id::CanId, CanError, ConstructionError};
 use embedded_can::{ExtendedId, Frame as EmbeddedFrame, Id, StandardId};
 use itertools::Itertools;
 
-#[cfg(not(feature = "osx_compatible"))]
-use libc::{can_frame, canfd_frame, canid_t};
-
-#[cfg(feature = "osx_compatible")]
-use crate::osx::{can_frame, canfd_frame, canid_t};
+use crate::compatibility::{can_frame, canfd_frame, canid_t};
 
 use std::{
     ffi::c_void,

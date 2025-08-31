@@ -23,12 +23,6 @@ pub use embedded_can::{
 };
 use libc::{socklen_t, EINPROGRESS};
 
-#[cfg(not(feature = "osx_compatible"))]
-use libc::{canid_t, AF_CAN, can_frame, can_filter, CAN_INV_FILTER};
-
-#[cfg(feature = "osx_compatible")]
-use crate::osx::{canid_t, AF_CAN, can_frame, can_filter, CAN_INV_FILTER};
-
 use socket2::SockAddr;
 use std::{
     fmt,
@@ -42,14 +36,8 @@ use std::{
     time::Duration,
 };
 
-#[cfg(not(feature = "osx_compatible"))]
-pub use libc::{
-    CANFD_MTU, CAN_MTU, CAN_RAW, CAN_RAW_ERR_FILTER, CAN_RAW_FD_FRAMES, CAN_RAW_FILTER,
-    CAN_RAW_JOIN_FILTERS, CAN_RAW_LOOPBACK, CAN_RAW_RECV_OWN_MSGS, SOL_CAN_BASE, SOL_CAN_RAW,
-};
-
-#[cfg(feature = "osx_compatible")]
-pub use crate::osx::{
+pub use crate::compatibility::{
+    canid_t, AF_CAN, can_frame, can_filter, CAN_INV_FILTER,
     CANFD_MTU, CAN_MTU, CAN_RAW, CAN_RAW_ERR_FILTER, CAN_RAW_FD_FRAMES, CAN_RAW_FILTER,
     CAN_RAW_JOIN_FILTERS, CAN_RAW_LOOPBACK, CAN_RAW_RECV_OWN_MSGS, SOL_CAN_BASE, SOL_CAN_RAW,
 };

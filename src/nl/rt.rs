@@ -80,7 +80,6 @@ pub struct can_bittiming_const {
     pub brp_inc: u32,
 }
 
-#[cfg(not(feature = "osx_compatible"))]
 impl ToBytes for can_bittiming_const {
     fn to_bytes(&self, buf: &mut Cursor<Vec<u8>>) -> Result<(), SerError> {
         buf.write_all(as_bytes(self))?;
@@ -88,7 +87,6 @@ impl ToBytes for can_bittiming_const {
     }
 }
 
-#[cfg(not(feature = "osx_compatible"))]
 impl<'a> FromBytes<'a> for can_bittiming_const {
     fn from_bytes(buf: &mut Cursor<&'a [u8]>) -> Result<Self, DeError> {
         let mut timing_const: can_bittiming_const = unsafe { mem::zeroed() };

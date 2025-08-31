@@ -159,9 +159,11 @@ pub mod socket;
 pub use socket::{CanFdSocket, CanFilter, CanSocket, ShouldRetry, Socket, SocketOptions};
 
 #[cfg(feature = "netlink")]
+#[cfg(target_os = "linux")]
 pub mod nl;
 
 #[cfg(feature = "netlink")]
+#[cfg(target_os = "linux")]
 pub use nl::{CanCtrlMode, CanInterface, InterfaceCanParams};
 
 /// Optional tokio support
@@ -189,8 +191,7 @@ pub mod enumerate;
 #[cfg(feature = "enumerate")]
 pub use enumerate::available_interfaces;
 
-#[cfg(feature = "osx_compatible")]
-pub mod osx;
+pub mod compatibility;
 // ===== helper functions =====
 
 /// Gets a byte slice for any sized variable.

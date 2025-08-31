@@ -15,22 +15,10 @@ use crate::{Error, Result};
 use bitflags::bitflags;
 use embedded_can::{ExtendedId, Id, StandardId};
 
-#[cfg(not(feature = "osx_compatible"))]
-use libc::canid_t;
-
-#[cfg(feature = "osx_compatible")]
-use crate::osx::canid_t;
-
 use std::{io, ops};
 
-#[cfg(not(feature = "osx_compatible"))]
-pub use libc::{
-    CANFD_BRS, CANFD_ESI, CANFD_MAX_DLEN, CAN_EFF_FLAG, CAN_EFF_MASK, CAN_ERR_FLAG, CAN_ERR_MASK,
-    CAN_MAX_DLEN, CAN_RTR_FLAG, CAN_SFF_MASK,
-};
-
-#[cfg(feature = "osx_compatible")]
-pub use crate::osx::{
+pub use crate::compatibility::{
+    canid_t,
     CANFD_BRS, CANFD_ESI, CANFD_MAX_DLEN, CAN_EFF_FLAG, CAN_EFF_MASK, CAN_ERR_FLAG, CAN_ERR_MASK,
     CAN_MAX_DLEN, CAN_RTR_FLAG, CAN_SFF_MASK,
 };

@@ -18,14 +18,7 @@ use nix::net::if_::if_nametoindex;
 use socket2::SockAddr;
 use std::{fmt, io, mem, mem::size_of, os::raw::c_int};
 
-#[cfg(not(feature = "osx_compatible"))]
-use libc::{sockaddr_can};
-
-#[cfg(not(feature = "osx_compatible"))]
-pub use libc::{AF_CAN, CAN_RAW, PF_CAN};
-
-#[cfg(feature = "osx_compatible")]
-use crate::osx::{sockaddr_can, AF_CAN};
+use crate::compatibility::{AF_CAN, sockaddr_can};
 
 /// CAN socket address.
 ///

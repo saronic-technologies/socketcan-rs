@@ -1,21 +1,3 @@
-// socketcan/src/osx.rs
-//
-// Implements CANbus Identifiers.
-//
-// This file is part of the Rust 'socketcan-rs' library.
-//
-// Licensed under the MIT license:
-//   <LICENSE or http://opensource.org/licenses/MIT>
-// This file may not be copied, modified, or distributed except according
-// to those terms.
-
-//! OSX compatibility layer for SocketCAN interfaces.
-//!
-//! This module provides OSX-compatible definitions for CAN bus structures,
-//! constants, and types that mirror the Linux SocketCAN API. These definitions
-//! allow the socketcan-rs library to compile and provide a consistent interface
-//! on macOS systems, even though native SocketCAN support is not available.
-
 use std::fmt::Debug;
 
 use libc::c_int;
