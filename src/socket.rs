@@ -12,10 +12,7 @@
 //! Implementation of sockets for CANbus 2.0 and FD for SocketCAN on Linux.
 
 use crate::{
-    as_bytes, as_bytes_mut,
-    frame::{can_frame_default, canfd_frame_default, AsPtr},
-    id::CAN_ERR_MASK,
-    CanAnyFrame, CanFdFrame, CanFrame, CanRawFrame, Error, IoError, IoErrorKind, IoResult, Result,
+    as_bytes, as_bytes_mut, compatibility::setsockopt_wrapper, frame::{can_frame_default, canfd_frame_default, AsPtr}, id::CAN_ERR_MASK, CanAnyFrame, CanFdFrame, CanFrame, CanRawFrame, Error, IoError, IoErrorKind, IoResult, Result
 };
 pub use embedded_can::{
     self, blocking::Can as BlockingCan, nb::Can as NonBlockingCan, ExtendedId,
@@ -23,7 +20,6 @@ pub use embedded_can::{
 };
 use libc::{socklen_t, EINPROGRESS};
 
-use socket2::SockAddr;
 use std::{
     fmt,
     io::{Read, Write},
@@ -36,11 +32,13 @@ use std::{
     time::Duration,
 };
 
-pub use crate::compatibility::{
-    canid_t, AF_CAN, can_frame, can_filter, CAN_INV_FILTER,
-    CANFD_MTU, CAN_MTU, CAN_RAW, CAN_RAW_ERR_FILTER, CAN_RAW_FD_FRAMES, CAN_RAW_FILTER,
-    CAN_RAW_JOIN_FILTERS, CAN_RAW_LOOPBACK, CAN_RAW_RECV_OWN_MSGS, SOL_CAN_BASE, SOL_CAN_RAW,
+use crate::compatibility::{
+    canid_t, can_filter, CAN_INV_FILTER,
+    CANFD_MTU, CAN_MTU,  CAN_RAW_ERR_FILTER, CAN_RAW_FD_FRAMES, CAN_RAW_FILTER,
+    CAN_RAW_JOIN_FILTERS, CAN_RAW_LOOPBACK, CAN_RAW_RECV_OWN_MSGS, SOL_CAN_RAW,
 };
+
+use crate::compatibility::raw_open_socket;
 
 // TODO: This can be removed on the next major version update
 pub use crate::CanAddr;
@@ -84,16 +82,6 @@ impl<E: fmt::Debug> ShouldRetry for IoResult<E> {
 }
 
 // ===== Private local helper functions =====
-
-/// Tries to open the CAN socket by the interface number.
-fn raw_open_socket(addr: &CanAddr) -> IoResult<socket2::Socket> {
-    let af_can = socket2::Domain::from(AF_CAN);
-    let can_raw = socket2::Protocol::from(CAN_RAW);
-
-    let sock = socket2::Socket::new_raw(af_can, socket2::Type::RAW, Some(can_raw))?;
-    sock.bind(&SockAddr::from(*addr))?;
-    Ok(sock)
-}
 
 /// `setsockopt` wrapper
 ///
@@ -302,6 +290,7 @@ pub trait Socket: AsRawFd {
     }
 }
 
+
 /// Traits for setting CAN socket options.
 ///
 /// These are blocking calls, even when implemented on asynchronous sockets.
@@ -325,12 +314,12 @@ pub trait SocketOptions: AsRawFd {
     /// of `i32`.
     fn set_socket_option<T>(&self, level: c_int, name: c_int, val: &T) -> IoResult<()> {
         let ret = unsafe {
-            libc::setsockopt(
-                self.as_raw_fd(),
-                level,
-                name,
-                val as *const _ as *const c_void,
-                size_of::<T>() as socklen_t,
+            setsockopt_wrapper(
+                self.as_raw_fd(), 
+                level, 
+                name, 
+                val as *const _ as *const c_void, 
+                size_of::<T>() as socklen_t
             )
         };
 
@@ -344,10 +333,10 @@ pub trait SocketOptions: AsRawFd {
     fn set_socket_option_mult<T>(&self, level: c_int, name: c_int, values: &[T]) -> IoResult<()> {
         let ret = if values.is_empty() {
             // can't pass in a ptr to a 0-len slice, pass a null ptr instead
-            unsafe { libc::setsockopt(self.as_raw_fd(), level, name, ptr::null(), 0) }
+            unsafe { setsockopt_wrapper(self.as_raw_fd(), level, name, ptr::null(), 0) }
         } else {
             unsafe {
-                libc::setsockopt(
+                setsockopt_wrapper(
                     self.as_raw_fd(),
                     level,
                     name,
@@ -500,15 +489,6 @@ impl CanSocket {
 #[derive(Debug)]
 pub struct CanSocket(socket2::Socket);
 
-impl CanSocket {
-    /// Reads a low-level libc `can_frame` from the socket.
-    pub fn read_raw_frame(&self) -> IoResult<can_frame> {
-        let mut frame = can_frame_default();
-        self.as_raw_socket().read_exact(as_bytes_mut(&mut frame))?;
-        Ok(frame)
-    }
-}
-
 impl Socket for CanSocket {
     /// CanSocket reads/writes classic CAN 2.0 frames.
     type FrameType = CanFrame;
@@ -534,11 +514,13 @@ impl Socket for CanSocket {
     where
         F: Into<CanFrame> + AsPtr,
     {
-        self.as_raw_socket().write_all(frame.as_bytes())
+        // Call our struct method to write a raw frame
+        self.write_raw_frame(frame)
     }
 
     /// Reads a normal CAN 2.0 frame from the socket.
     fn read_frame(&self) -> IoResult<CanFrame> {
+        // Call our struct method to read a raw frame
         let frame = self.read_raw_frame()?;
         Ok(frame.into())
     }

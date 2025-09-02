@@ -7,3 +7,41 @@ pub use libc::{
     CAN_RAW_LOOPBACK, CAN_RAW_RECV_OWN_MSGS, CAN_RAW_FD_FRAMES, CAN_RAW_JOIN_FILTERS,
     CAN_RAW_FILTER_MAX, CAN_INV_FILTER,
 };
+///
+/// Tries to open the CAN socket by the interface number.
+pub(crate) fn raw_open_socket(addr: &CanAddr) -> IoResult<socket2::Socket> {
+    let af_can = socket2::Domain::from(AF_CAN);
+    let can_raw = socket2::Protocol::from(CAN_RAW);
+
+    let sock = socket2::Socket::new_raw(af_can, socket2::Type::RAW, Some(can_raw))?;
+    sock.bind(&SockAddr::from(*addr))?;
+    Ok(sock)
+}
+
+// Wrapper over setsockopt, which we define in our compatibility layers to avoid invalid system
+// calls under an incompatible operating system, such as SocketCAN calls on OSX
+pub(crate) unsafe fn setsockopt_wrapper(socket :c_int, level :c_int, name :c_int, value :*const c_void, option_len :socklen_t) -> c_int {
+    unsafe {
+        libc::setsockopt(
+            socket,
+            level,
+            name,
+            value as *const _ as *const c_void,
+            option_len
+        )
+    }
+}
+
+impl CanSocket {
+    /// Reads a low-level libc `can_frame` from the socket.
+    pub fn read_raw_frame(&self) -> IoResult<can_frame> {
+        let mut frame = can_frame_default();
+        self.as_raw_socket().read_exact(as_bytes_mut(&mut frame))?;
+        Ok(frame)
+    }
+
+    pub fn write_raw_frame<F>(&self, frame :&F) -> IoResult<()>
+      where F :Into<CanFrame> + AsPtr {
+        self.as_raw_socket().write_all(frame.as_bytes())
+    }
+}

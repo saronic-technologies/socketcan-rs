@@ -1,7 +1,18 @@
 use std::fmt::Debug;
+use std::io::Write;
+use std::os::fd::AsRawFd;
+use std::os::raw::c_void;
 
 use libc::c_int;
 use libc::sa_family_t;
+use libc::socklen_t;
+
+use crate::frame::AsPtr;
+use crate::CanAddr;
+use crate::CanFrame;
+use crate::CanSocket;
+use crate::IoResult;
+use crate::Socket;
 
 /// Extended frame format flag (29-bit ID)
 pub const CAN_EFF_FLAG: canid_t = 0x80000000;
@@ -164,9 +175,13 @@ pub const CAN_J1939: c_int = 7;
 pub const CAN_NPROTO: c_int = 8;
 
 /// Socket option level base for CAN
-pub const SOL_CAN_BASE: c_int = 100;
+/// An invalid number to trigger a runtime error,
+/// as SocketCAN is not supported on OSX.
+pub const SOL_CAN_BASE: c_int = 0xFFFFF;
 /// CAN address family
-pub const AF_CAN :c_int = 0;
+/// An invalid number to trigger a runtime error,
+/// as SocketCAN is not supported on OSX.
+pub const AF_CAN :c_int = 0xFFFFF;
 /// CAN protocol family
 pub const PF_CAN: c_int = AF_CAN;
 
@@ -175,7 +190,7 @@ pub const SOL_CAN_RAW: c_int = SOL_CAN_BASE + CAN_RAW;
 /// Maximum number of CAN filters per raw socket
 pub const CAN_RAW_FILTER_MAX: c_int = 512;
 
-/// Socket option: set/get CAN filters
+/// Socket option: set CAN filters
 // FIXME(cleanup): use `c_enum!`, which needs to be adapted to allow omitting a type.
 pub const CAN_RAW_FILTER: c_int = 1;
 /// Socket option: set/get error filter
@@ -261,3 +276,41 @@ pub struct can_filter {
     pub can_mask: canid_t,
 }
 
+pub(crate) fn raw_open_socket(_addr: &CanAddr) -> IoResult<socket2::Socket> {
+    panic!("Not supported outside of Linux")
+}
+
+impl CanSocket {
+    /// Reads a low-level libc `can_frame` from the socket.
+    pub fn read_raw_frame(&self) -> IoResult<can_frame> {
+        panic!("Not supported outside of Linux")
+    }
+
+    /// Writes a CanFrame to the socket
+    pub fn write_raw_frame<F>(&self, _frame :&F) -> IoResult<()>
+      where F :Into<CanFrame> + AsPtr {
+        panic!("Not supported outside of Linux")
+    }
+}
+
+// Wrapper over setsockopt, which we define in our compatibility layers to avoid invalid system
+// calls under an incompatible operating system, such as SocketCAN calls on OSX
+pub(crate) unsafe fn setsockopt_wrapper(socket :c_int, level :c_int, name :c_int, value :*const c_void, option_len :socklen_t) -> c_int {
+    unsafe {
+        // Raw setsockopt values are only supported on Linux
+        // We use dummy values anyways, but this panic is important to have a controlled
+        // runtime exception.
+
+        if SOL_CAN_RAW == level {
+            panic!("Not supported outside of Linux")
+        } else {
+            libc::setsockopt(
+                socket,
+                level,
+                name,
+                value as *const _ as *const c_void,
+                option_len
+            )
+        }
+    }
+}
