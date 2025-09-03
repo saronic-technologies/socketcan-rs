@@ -13,6 +13,9 @@
 //! Handles SocketCAN compatibility between native Linux and
 //! "emulated" OSX to make sure cargo check passes for both OS'es
 
+// mod linux;
+// pub use linux::*;
+
 #[cfg(target_os = "linux")]
 mod linux;
 

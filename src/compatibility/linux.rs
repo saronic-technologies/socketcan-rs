@@ -5,8 +5,21 @@ pub use libc::{
     CAN_MTU, CANFD_MTU, CAN_RAW, CAN_BCM, CAN_TP16, CAN_TP20, CAN_MCNET, CAN_ISOTP, CAN_J1939,
     CAN_NPROTO, AF_CAN, PF_CAN, SOL_CAN_BASE, SOL_CAN_RAW, CAN_RAW_FILTER, CAN_RAW_ERR_FILTER,
     CAN_RAW_LOOPBACK, CAN_RAW_RECV_OWN_MSGS, CAN_RAW_FD_FRAMES, CAN_RAW_JOIN_FILTERS,
-    CAN_RAW_FILTER_MAX, CAN_INV_FILTER,
+    CAN_RAW_FILTER_MAX, CAN_INV_FILTER, c_int, c_void, socklen_t
 };
+
+use crate::CanAddr;
+use crate::CanFrame;
+use crate::CanSocket;
+use crate::IoResult;
+use crate::Socket;
+use crate::as_bytes_mut;
+
+use socket2::SockAddr;
+
+use crate::frame::can_frame_default;
+use crate::frame::AsPtr;
+
 ///
 /// Tries to open the CAN socket by the interface number.
 pub(crate) fn raw_open_socket(addr: &CanAddr) -> IoResult<socket2::Socket> {
