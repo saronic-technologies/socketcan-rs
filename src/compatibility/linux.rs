@@ -20,7 +20,8 @@ use socket2::SockAddr;
 use crate::frame::can_frame_default;
 use crate::frame::AsPtr;
 
-///
+use std::io::{Read, Write};
+
 /// Tries to open the CAN socket by the interface number.
 pub(crate) fn raw_open_socket(addr: &CanAddr) -> IoResult<socket2::Socket> {
     let af_can = socket2::Domain::from(AF_CAN);

@@ -1,6 +1,4 @@
 use std::fmt::Debug;
-use std::io::Write;
-use std::os::fd::AsRawFd;
 use std::os::raw::c_void;
 
 use libc::c_int;
@@ -12,7 +10,6 @@ use crate::CanAddr;
 use crate::CanFrame;
 use crate::CanSocket;
 use crate::IoResult;
-use crate::Socket;
 
 /// Extended frame format flag (29-bit ID)
 pub const CAN_EFF_FLAG: canid_t = 0x80000000;
