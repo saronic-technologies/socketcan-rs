@@ -1,17 +1,19 @@
 [package]
-name = "socketcan"
-version = "3.5.0"
+name = "socketcan-with-osx"
+version = "3.5.1"
 edition = "2021"
 rust-version = "1.70"
 authors = [
     "Marc Brinkmann <git@marcbrinkmann.de>",
-    "Frank Pagliughi <fpagliughi@mindspring.com>"
+    "Frank Pagliughi <fpagliughi@mindspring.com>",
+    "Andrew O'Mahony <andrew.omahony@saronic.com>"
 ]
 documentation = "https://docs.rs/socketcan"
 repository = "https://github.com/mbr/socketcan-rs"
 license = "MIT"
 description = """
 Linux SocketCAN library. Send and receive CAN frames via CANbus on Linux.
+OSX compilation supported.
 """
 
 # Features:
