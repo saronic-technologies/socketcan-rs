@@ -159,7 +159,6 @@ pub mod socket;
 pub use socket::{CanFdSocket, CanFilter, CanSocket, ShouldRetry, Socket, SocketOptions};
 
 #[cfg(feature = "netlink")]
-#[cfg(target_os = "linux")]
 pub mod nl;
 
 #[cfg(feature = "netlink")]

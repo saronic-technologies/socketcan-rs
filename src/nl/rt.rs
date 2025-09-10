@@ -21,6 +21,12 @@
 use crate::{as_bytes, as_bytes_mut};
 use libc::{c_char, c_uint};
 
+#[cfg(target_os = "macos")]
+extern crate neli_dev as neli;
+
+#[cfg(target_os = "linux")]
+extern crate neli_rs as neli;
+
 use neli::{
     consts::rtnl::{RtaType, RtaTypeWrapper},
     err::{DeError, SerError},

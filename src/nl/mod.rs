@@ -52,6 +52,12 @@
 //! <https://github.com/lalten/libsocketcan>
 //!
 
+#[cfg(target_os = "macos")]
+extern crate neli_dev as neli;
+
+#[cfg(target_os = "linux")]
+extern crate neli_rs as neli;
+
 use neli::{
     attr::Attribute,
     consts::{

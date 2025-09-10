@@ -34,7 +34,7 @@ OSX compilation supported.
 
 [features]
 default = ["netlink", "dump"]
-netlink = ["neli"]
+netlink = []
 dump = []
 netlink_tests = ["netlink"]
 vcan_tests = ["netlink"]
@@ -69,7 +69,10 @@ libudev = { version = "0.3", optional = true }
 # avoids a ton of compile errors. Worthwhile together with the
 # build.rs script to error early when building for non-linux
 [target.'cfg(target_os = "linux")'.dependencies]
-neli = { version = "0.6", optional = true }
+neli_rs = { package = "neli", version = "0.6" }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+neli_dev = { package = "neli-with-osx", git = "https://github.com/saronic-technologies/neli", branch = "aomahony/compile-on-OSX" }
 
 [dev-dependencies]
 anyhow = "1.0"
